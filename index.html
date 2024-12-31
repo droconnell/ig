@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Carousel Image Splitter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #drop-zone {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      margin: 20px;
+      cursor: pointer;
+    }
+    #image-preview {
+      margin: 20px 0;
+      max-width: 100%;
+      display: none;
+    }
+    .button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Instagram Carousel Image Splitter</h1>
+  <div id="drop-zone">Drag and drop your image here or click to upload</div>
+  <input type="file" id="file-input" accept="image/*" class="hidden">
+  <img id="image-preview" src="" alt="Image Preview">
+  <div id="buttons" style="display: none;">
+    <button class="button" onclick="splitImage(2)">Split into 2 Images</button>
+    <button class="button" onclick="splitImage(3)">Split into 3 Images</button>
+  </div>
+  <div id="results"></div>
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const imagePreview = document.getElementById('image-preview');
+    const buttons = document.getElementById('buttons');
+    const results = document.getElementById('results');
+    let originalImage;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#007BFF';
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = '#ccc';
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#ccc';
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    function handleFile(file) {
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          originalImage = new Image();
+          originalImage.src = e.target.result;
+          originalImage.onload = () => {
+            imagePreview.src = originalImage.src;
+            imagePreview.style.display = 'block';
+            buttons.style.display = 'block';
+          };
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please upload a valid image file.');
+      }
+    }
+
+    function splitImage(parts) {
+      results.innerHTML = '';
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const partWidth = originalImage.width / parts;
+      const partHeight = originalImage.height;
+      canvas.height = partHeight;
+
+      for (let i = 0; i < parts; i++) {
+        canvas.width = partWidth;
+        ctx.drawImage(
+          originalImage,
+          i * partWidth,
+          0,
+          partWidth,
+          partHeight,
+          0,
+          0,
+          partWidth,
+          partHeight
+        );
+        const imgURL = canvas.toDataURL();
+        const link = document.createElement('a');
+        link.href = imgURL;
+        link.download = `image-part-${i + 1}.png`;
+        link.textContent = `Download Part ${i + 1}`;
+        link.className = 'button';
+        results.appendChild(link);
+        results.appendChild(document.createElement('br'));
+      }
+    }
+  </script>
+</body>
+</html>
